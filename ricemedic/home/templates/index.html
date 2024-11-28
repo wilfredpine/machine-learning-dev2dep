@@ -1,0 +1,192 @@
+
+<!DOCTYPE html>
+<html lang="en"> 
+    <head>
+        <title>RiceMedica</title>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+        <!-- Optional theme -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css" integrity="sha512-5Hs3dF2AEPkpNAR7UiOHba+lRSJNeM2ECkwxUIxC1Q/FLycGTbNapWXB4tP889k5T5Ju8fs4b1P5z/iB4nMfSQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    </head> 
+<body class="app">   
+    <div class="app-wrapper">
+
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">RiceMedica</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                    <a class="nav-link" href="/upload">Upload</a>
+                    </li>
+                </ul>
+                </div>
+            </div>
+        </nav>
+
+        <hr>
+        <h3> Rice Plant Pests and Diseases Classification System </h3>
+        <code>Reminder: The AI’s accuracy depends on image quality; ensure clear, focused images for best results. The model may not identify if the image is a rice plant before classifying the pest and disease, (so considering using object detection first is best approach but that's not included in this application). For now, used a true image of a rice plant for clasification. Results should be used as a supportive tool, not a substitute for expert advice.</code>
+        <hr>
+
+        {% if predicted_class_name %}
+            {% if is_valid %}
+                <img src="{{ MEDIA_URL }}/{{ image_name }}" height="150" alt="" style="border-radius: 0"><br>
+                Prediction:
+                {{predicted_class_name}}<br>
+                Accuracy: 
+                {{predicted_class_acuracy}}<br>
+                <hr>
+                <div style="height: auto; width: auto">
+                    <img src="data:image/png;base64,{{ graphic_visualization|safe }}" alt="">
+                </div><br>
+                <hr>
+                <a href="/">Capture Again?</a>
+            {% else %}
+                <h3>Low Accuracy! <a href="/">Please try again.</a><h3>
+            {% endif %}
+        {% endif %}
+
+        <hr>
+
+        {% if not predicted_class_name %}
+            <div class="row g-4 mb-4">
+                <div class="col-12 col-lg-4">
+
+                    <h4>Capture the Rice Plant</h4>
+
+                    <div class="cp-field mb-0">
+
+                        <div class="row align-items-center pt-0 mt-0">
+                            <video id="player" class="" style="width: 100%; " autoplay></video>
+                            <canvas id="canvas" width="auto" style="width: 100%;"></canvas>
+                            <div style="margin-top: 10px; margin-left: 10px; z-index: 9999;">
+                                <button id="capture" class="btn btn-sm btn-warning" style=""><i class="fa fa-camera-retro"></i></button>
+                                <a id="restart" href="" class="btn btn-sm btn-danger" style=""><i class="fa fa-trash"></i></a>
+                            </div>
+
+                            <a href="#" id="switchCam">Switch Camera (front/rear)</a>
+                        </div>
+                        
+
+                        <form action="" method="POST" enctype="multipart/form-data">
+
+                            {% csrf_token %}
+
+                            <input type="hidden" class="form-control form-control-sm mb-0" name="image_data" id="id_image_data">
+                            <div class="row align-items-right mt-3">
+                                <input type="submit" id="classify" class="btn btn-success" name="upload" value="Classify">
+                            </div>
+                            <!--save-stngs end-->
+
+                        </form>
+
+                    </div>
+                
+                </div>
+            </div>
+        {% endif %}
+
+
+        <script>
+            const player = document.getElementById('player');
+            const canvas = document.getElementById('canvas');
+            canvas.height = 0;
+            const context = canvas.getContext('2d');
+            const captureButton = document.getElementById('capture');
+
+            const switchCamButton = document.getElementById('switchCam'); //
+            let currentFacingMode = 'environment'; // 'user' for front cam, 'environment' for rear cam
+
+
+            document.getElementById('classify').style.display = 'none';
+        
+            //const constraints = {
+            //    video: true,
+            //};
+
+            let constraints = {
+                video: {
+                    facingMode: currentFacingMode
+                }
+            };
+
+            function startCamera() {
+                navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
+                    player.srcObject = stream;
+                }).catch((error) => {
+                    console.error('Error accessing media devices.', error);
+                });
+            }
+        
+            captureButton.addEventListener('click', () => {
+
+                document.getElementById('classify').style.display = 'block';
+                document.getElementById('capture').style.display = 'none';;
+
+                canvas.height = 250;
+                // Draw the video frame to the canvas.
+                context.drawImage(player, 0, 0, canvas.width, canvas.height);
+        
+                // var dataURL = canvas.toDataURL().split(",");
+                
+                var dataURL = canvas.toDataURL();
+                console.log(dataURL)
+                document.getElementById('id_image_data').value = dataURL
+
+                console.log(document.getElementById('id_image_data').value)
+        
+                player.height = 0;
+        
+            }); 
+        
+            // Attach the video stream to the video element and autoplay.
+            //navigator.mediaDevices.getUserMedia(constraints).then((stream) => 
+        // {
+            //    player.srcObject = stream;
+        //     video.play();
+            //});
+
+            switchCamButton.addEventListener('click', () => {
+                // Stop the existing video stream
+                player.srcObject.getTracks().forEach(track => track.stop());
+
+                // Toggle the facing mode
+                currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+                constraints.video.facingMode = currentFacingMode;
+
+                // Restart the camera with the new constraints
+                startCamera();
+            });
+
+            // Start the camera initially
+            startCamera();
+        
+        
+        
+        </script>
+
+    </div>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+</body>
+</html> 

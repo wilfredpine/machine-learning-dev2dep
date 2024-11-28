@@ -1,0 +1,13 @@
+For Multiple Python Version Installed:
+
+- create virtual environment with specified version
+
+`py -3.9 -m venv myenv39`
+
+- activate virtual environment
+
+`myenv39\Scripts\activate`
+
+- Check Python Version
+
+`py --version`

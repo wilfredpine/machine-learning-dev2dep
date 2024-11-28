@@ -1,4 +1,4 @@
-Saved Model/Rice_ResNet50_50epochs.h5
-ricemedic/ml_model/Rice_ResNet50_50epochs.h5
+machine_learning_development/saved_model/Rice_ResNet50_50epochs.h5
+standalone_system_ml_deployment/ml_model/Rice_ResNet50_50epochs.h5
 myenv39/*
 .vscode/*

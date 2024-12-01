@@ -17,7 +17,9 @@ from .models import RiceDisease
 import subprocess
 import json
 
-api_link = 'http://127.0.0.1/predict'
+# api_link = 'http://127.0.0.1/predict'
+api_link = 'https://ricemedica-api.confired.com'
+
 image_size = (224, 224)
 class_names = [
         'Bacterial_Blight',
@@ -66,7 +68,16 @@ def capture(request):
         if result.returncode != 0:
             raise Exception(f"Curl command failed: {result.stderr}")
         # Parse the response
-        predicted_infos = json.loads(result.stdout)[0]
+        try:
+            predicted_infos = json.loads(result.stdout)[0]
+        except Exception as e:
+            # Error message to display
+            error_message = (
+                "This demo encountered problems sometimes due to server limitations. "
+                "For better performance of your ML application, consider using a dedicated server "
+                "or other cloud services."
+            )
+            return render(request, 'error.html', {'error_message': error_message})
 
         graphic_visualization = visualize_prediction(predicted_infos['rounded_predictions'])
         
@@ -106,7 +117,16 @@ def upload(request):
         if result.returncode != 0:
             raise Exception(f"Curl command failed: {result.stderr}")
         # Parse the response
-        predicted_infos = json.loads(result.stdout)[0]
+        try:
+            predicted_infos = json.loads(result.stdout)[0]
+        except Exception as e:
+            # Error message to display
+            error_message = (
+                "This demo encountered problems sometimes due to server limitations. "
+                "For better performance of your ML application, consider using a dedicated server "
+                "or other cloud services."
+            )
+            return render(request, 'error.html', {'error_message': error_message})
         
         graphic_visualization = visualize_prediction(predicted_infos['rounded_predictions'])
         
@@ -133,6 +153,7 @@ def rename_file(extension):
 def upload_file(file, file_name):
     fs = FileSystemStorage() # create a new instance of FileSystemStorage
     file_path = os.path.join(settings.MEDIA_ROOT, file_name)
+    # fs.save(file_name, file)
     fs.save(file_path, file)
     return file_path
 

@@ -99,6 +99,7 @@ def rename_file(extension):
 def upload_file(file, file_name):
     fs = FileSystemStorage() # create a new instance of FileSystemStorage
     file_path = os.path.join(settings.MEDIA_ROOT, file_name)
+    # fs.save(file_name, file)
     fs.save(file_path, file)
     return file_path
 
